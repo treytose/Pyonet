@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from . import db
 
 # routers 
+from .routers import poller
 from .routers import auth
 
 app = FastAPI()
@@ -14,6 +15,7 @@ async def hello():
 @app.on_event("startup")
 async def startup_event():
     await db.connect()
+    await poller.oPoller.generate()
     await auth.oAuth.generate()
 
 @app.on_event("shutdown")
@@ -21,4 +23,5 @@ async def shutdown_event():
     await db.disconnect()
 
 # register routers #
+app.include_router(poller.router)
 app.include_router(auth.router)

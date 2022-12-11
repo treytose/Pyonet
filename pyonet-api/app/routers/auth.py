@@ -2,7 +2,7 @@ from datetime import timedelta
 from fastapi import APIRouter, Depends, Form, HTTPException
 from pydantic import ValidationError
 from app import ACCESS_TOKEN_EXPIRE_MINUTES
-from app.dependencies import verify_token
+from app.dependencies import verify_token, verify_api_key
 from app.schemas.auth import Token, SignupModel
 from app.libraries.libauth import Auth
 
@@ -34,3 +34,7 @@ async def login(username: str = Form(...), password: str = Form(...)):
 @router.get("/auth/test")
 async def test(user = Depends(verify_token)):
     return user
+
+@router.get("/auth/test/api_key")
+async def test_api_key(poller = Depends(verify_api_key)):
+    return poller
