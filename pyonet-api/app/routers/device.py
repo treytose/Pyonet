@@ -1,8 +1,9 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from app.libraries.libdevice import Device
 from app.schemas.device import DeviceModel, DeviceUpdateModel, DeviceCreateModel
+from app.dependencies import verify_token
 
-router = APIRouter(tags=["device"])
+router = APIRouter(tags=["device"], dependencies=[Depends(verify_token)])
 oDevice = Device()
 
 @router.get("/device/schema")
