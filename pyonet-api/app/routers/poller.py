@@ -1,9 +1,19 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from app.dependencies import verify_api_key
 from app.libraries.libpoller import Poller
 from app.schemas.poller import PollerModel, PollerUpdateModel, PollerCreateModel
 
 router = APIRouter(tags=["poller"])
 oPoller = Poller()
+
+
+# Poller Requests ( API_KEY required )
+
+@router.get("/poller/devices")
+async def get_poller_devices(poller = Depends(verify_api_key)):
+    return await oPoller.get_poller_devices(poller)
+
+# CRUID Poller Requests ( JWT required )
 
 @router.get("/poller/schema")
 async def get_poller_schema(joined: bool = False):              
@@ -28,3 +38,4 @@ async def update_poller(pollerid: int, poller: PollerUpdateModel):
 @router.delete("/poller/{pollerid}")
 async def delete_poller(pollerid: int):
     return await oPoller.delete_poller(pollerid)
+

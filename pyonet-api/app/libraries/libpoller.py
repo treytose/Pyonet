@@ -4,9 +4,7 @@ from app.schemas.poller import PollerModel, PollerJoinedModel
 
 class Poller:
     async def __join_poller__(self, poller):
-
         return PollerJoinedModel ( **poller)
-
 
     async def generate(self):
         await db.create_schema("poller", PollerModel.schema())
@@ -73,3 +71,7 @@ class Poller:
     async def delete_poller(self, pollerid: int):
         error_no = await db.delete("poller", "pollerid", pollerid)
         return error_no
+
+    async def get_poller_devices(self, poller):
+        devices = await db.fetchall("SELECT * FROM device WHERE pollerid = :pollerid", {"pollerid": poller.pollerid})
+        return devices

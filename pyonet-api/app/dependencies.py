@@ -24,7 +24,7 @@ async def verify_token(token: str = Depends(oauth2_scheme)):
 
     return user
 
-async def verify_api_key(api_key: str = Depends(APIKeyHeader(name="PYONET-POLLER-API-KEY"))):
+async def verify_api_key(api_key: str = Depends(APIKeyHeader(name="Authorization", auto_error=False, description="Pyonet-Poller API key"))):
     if not api_key or api_key == "null":
         raise HTTPException(status_code=401, detail="Not authenticated")          
 

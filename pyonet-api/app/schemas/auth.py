@@ -20,3 +20,7 @@ class TokenData(BaseModel):
 
 class SignupModel(User):
     password: str = Query(None, min_length=8)
+
+class LoginModel(BaseModel):
+    username: str = Query(None, max_length=64)
+    password: str = Query(None, min_length=8)
