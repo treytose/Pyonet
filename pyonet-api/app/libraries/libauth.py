@@ -66,14 +66,14 @@ class Auth:
         if expires_delta:
             expire = datetime.utcnow() + expires_delta
         else:
-            expire = datetime.utcnow() + timedelta(minutes=15)
+            expire = datetime.utcnow() + timedelta(days=7)
         to_encode.update({"exp": expire})
         encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
         return encoded_jwt
 
-    async def get_current_user(self, token: str):   
+    async def get_current_user(self, token: str):           
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])        
-        userid = payload.get("sub")
+        userid = payload.get("sub")                
 
         user = await self.get_safe_user(userid)
         return user

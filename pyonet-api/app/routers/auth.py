@@ -38,6 +38,12 @@ async def login(login_model: LoginModel):
     return {"access_token": token, "token_type": "bearer"}
 
 
+@router.get("/auth/verify")
+async def verify(user = Depends(verify_token)):
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return user
+
 @router.get("/auth/test")
 async def test(user = Depends(verify_token)):
     return user
