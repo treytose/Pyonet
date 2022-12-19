@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from fastapi import HTTPException
 from app import db, SECRET_KEY, ALGORITHM
-from app.schemas.auth import User, UserInDB, TokenData, SignupModel
+from app.schemas.auth import UserModel, UserInDB, TokenData, UserCreateModel
 
 from passlib.context import CryptContext
 import jwt
@@ -19,7 +19,7 @@ class Auth:
 
     async def get_safe_user(self, userid: int):
         user = await self.get_user(userid)
-        return User(**user.dict())
+        return UserModel(**user.dict())
 
     async def get_user_by_username(self, username: str):
         user = await db.fetchone("SELECT * FROM user WHERE username = :username", {"username": username})
@@ -33,7 +33,7 @@ class Auth:
     async def get_password_hash(self, password):
         return self.pwd_context.hash(password)
 
-    async def create_user(self, user: SignupModel):
+    async def create_user(self, user: UserCreateModel):
         if await self.get_user_by_username(user.username):
             raise HTTPException(status_code=400, detail="username already exists")
 
@@ -41,7 +41,8 @@ class Auth:
         user_dict = user.dict()
         del user_dict["password"]
         user_dict["hashed_password"] = hashed_password
-        userid = await db.insert("user", user_dict)
+        user_in_db = UserInDB(**user_dict)
+        userid = await db.insert("user", user_in_db.dict())
         return userid
 
     async def authenticate_user(self, username: str, password: str):      
