@@ -2,7 +2,7 @@ from fastapi import HTTPException
 from datetime import datetime
 from app import db
 from app.libraries.libauth import Auth
-from app.schemas.auth import UserModel, UserJoinedModel, UserCreateModel
+from app.schemas.auth import UserModel, UserJoinedModel, UserCreateModel, UserUpdateModel
 
 
 class User:
@@ -83,8 +83,15 @@ class User:
 
         return userid
 
-    async def update_user(self, userid: int, user: UserModel):
-        error_no = await db.update("user", "userid", userid, user.dict())
+    async def update_user(self, userid: int, user: UserUpdateModel):
+        user_model = UserModel(**user.dict())
+        error_no = await db.update("user", "userid", userid, user_model.dict(exclude_none=True))
+
+        if error_no == 0:
+            await db.delete("user_role_link", "userid", userid)
+            for roleid in user.roles:
+                await db.insert("user_role_link", {"userid": userid, "roleid": roleid})
+
         return error_no
 
     async def delete_user(self, userid: int):

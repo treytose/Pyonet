@@ -33,3 +33,4 @@ class UserCreateModel(UserModel):
 
 class UserUpdateModel(UserModel):
     password: Optional[str] = Query(None, min_length=8)
+    roles: Optional[List[int]] = Query([], description='List of roles to assign to the user')
