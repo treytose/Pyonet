@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from fastapi import Query
-from typing import Optional    
+from typing import Optional 
+from app.schemas.permission import PermissionModel   
 
 
 class RoleModel(BaseModel):          
@@ -18,4 +19,4 @@ class RoleUpdateModel(BaseModel):
 
 
 class RoleJoinedModel(RoleModel):
-      pass
+    permissions: list[PermissionModel] = []

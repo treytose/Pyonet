@@ -4,8 +4,15 @@ from app.schemas.role import RoleModel, RoleJoinedModel
 
 class Role:
     async def __join_role__(self, role):
-
-        return RoleJoinedModel ( **role)
+        if role.name == "admin":
+            permissions = await db.fetchall('SELECT * FROM permission')
+        else:
+            permissions = await db.fetchall('''
+                SELECT p.* FROM permission p
+                    INNER JOIN role_permission_link rpl ON rpl.permissionid = p.permissionid
+                WHERE rpl.roleid = :roleid
+            ''', {"roleid": role.roleid})
+        return RoleJoinedModel ( **role, permissions=permissions)
 
 
     async def generate(self):
