@@ -12,10 +12,12 @@ class RoleModel(BaseModel):
 class RoleCreateModel(BaseModel):
     name: str  = Query(..., title="name", max_length=32, form_options={}) 
     description: str  = Query(..., title="description", max_length=128, form_options={})
+    permissions: Optional[list[int]] = []
 
 class RoleUpdateModel(BaseModel):
     name: Optional[str]  = Query(..., title="name", max_length=32, form_options={}) 
     description: Optional[str]  = Query(..., title="description", max_length=128, form_options={})
+    permissions: Optional[list[int]] = []
 
 
 class RoleJoinedModel(RoleModel):

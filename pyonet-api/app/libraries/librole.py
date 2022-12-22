@@ -1,6 +1,6 @@
 from http.client import HTTPException
 from app import db
-from app.schemas.role import RoleModel, RoleJoinedModel
+from app.schemas.role import RoleModel, RoleJoinedModel, RoleUpdateModel, RoleCreateModel
 
 class Role:
     async def __join_role__(self, role):
@@ -69,12 +69,24 @@ class Role:
             role = self.__join_role__(role)
         return role
 
-    async def create_role(self, role: RoleModel):
+    async def create_role(self, role_create: RoleCreateModel):
+        role = RoleModel(**role_create.dict())
         roleid = await db.insert("role", role.dict())
+
+        for permissionid in role_create.permissions:
+            await db.insert("role_permission_link", {"roleid": roleid, "permissionid": permissionid})
+            
         return roleid
 
-    async def update_role(self, roleid: int, role: RoleModel):
-        error_no = await db.update("role", "roleid", roleid, role.dict())
+    async def update_role(self, roleid: int, role_update: RoleUpdateModel):
+        role = RoleModel(**role_update.dict())
+        error_no = await db.update("role", "roleid", roleid, role.dict(exclude_unset=True))
+
+        await db.delete("role_permission_link", "roleid", roleid)
+
+        for permissionid in role_update.permissions:
+            await db.insert("role_permission_link", {"roleid": roleid, "permissionid": permissionid})
+
         return error_no
 
     async def delete_role(self, roleid: int):
