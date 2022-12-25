@@ -1,5 +1,5 @@
 from fastapi import Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer, APIKeyHeader
+from fastapi.security import OAuth2PasswordBearer, APIKeyHeader, SecurityScopes
 from app.libraries.libauth import Auth
 from jwt.exceptions import ExpiredSignatureError, InvalidSignatureError
 from app import db
@@ -8,18 +8,26 @@ oAuth = Auth()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login/form")
 
-async def verify_token(token: str = Depends(oauth2_scheme)):      
-    if not token or token == "null":
-        raise HTTPException(status_code=401, detail="Not authenticated")          
 
+async def verify_token(security_scopes: SecurityScopes, token: str = Depends(oauth2_scheme)):      
+    if not token or token == "null":
+        raise HTTPException(status_code=401, detail="Not authenticated")              
     try:
-        user = await oAuth.get_current_user(token)
+        user = await oAuth.get_current_user(token)        
     except ExpiredSignatureError as e:
         raise HTTPException(status_code=401, detail="Token expired")    
     except InvalidSignatureError as ie:
         raise HTTPException(status_code=401, detail="Bad token")    
         
-    if not user:
+    if security_scopes.scopes:
+        if not user.roles:
+            raise HTTPException(status_code=401, detail="Not authorized")
+        for role in user.roles:
+            if role in security_scopes.scopes:
+                return user 
+        raise HTTPException(status_code=401, detail="Not authorized")
+
+    if not user:        
         raise HTTPException(status_code=401, detail="Bad token")
 
     return user

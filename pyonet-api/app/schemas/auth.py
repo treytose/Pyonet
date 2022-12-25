@@ -9,12 +9,14 @@ class UserModel(BaseModel):
     username: str = Query(..., max_length=64)
     create_date: Optional[datetime] = Query(None, description='Date and time the user signed up', form_options={"display": False})
 
+# Be sure this model is not returned to the client
 class UserInDB(UserModel):    
     userid: int = Query(None)
     hashed_password: str = Query(..., max_length=128)
 
-class UserJoinedModel(UserInDB):
-    roles: List[RoleModel] = Query([], description='List of roles assigned to the user')
+class UserJoinedModel(UserModel):
+    roles: List[str] = Query([], description='List of roles assigned to the user')
+    permissions: List[str] = Query([], description='List of permissions assigned to the user')
 
 class Token(BaseModel):
     access_token: str

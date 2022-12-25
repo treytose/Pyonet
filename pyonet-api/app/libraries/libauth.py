@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from fastapi import HTTPException
 from app import db, SECRET_KEY, ALGORITHM
-from app.schemas.auth import UserModel, UserInDB, TokenData, UserCreateModel
+from app.schemas.auth import UserModel, UserInDB, TokenData, UserCreateModel, UserJoinedModel
 
 from passlib.context import CryptContext
 import jwt
@@ -9,6 +9,20 @@ import jwt
 class Auth:    
     def __init__(self):
       self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")  
+
+    async def __join_user__(self, user: UserModel):        
+        roles = await db.fetchall("SELECT role.* FROM user_role_link INNER JOIN role ON user_role_link.roleid = role.roleid WHERE user_role_link.userid = :userid", {"userid": user.userid})
+        # give admin all permissions
+        if "admin" in [role.name for role in roles]:
+            permissions = await db.fetchall("SELECT * FROM permission")
+        else:
+            permissions = await db.fetchall('''
+                SELECT permission.* FROM user_role_link url
+                    INNER JOIN role_permission_link rpl ON url.roleid = rpl.roleid
+                    INNER JOIN permission ON rpl.permissionid = permission.permissionid
+                WHERE url.userid = :userid
+            ''', {"userid": user.userid})
+        return UserJoinedModel(**user.dict(), roles=[role.name for role in roles], permissions=[permission.name for permission in permissions])
 
     async def generate(self):
         await db.create_schema("user", UserInDB.schema()) 
@@ -19,7 +33,8 @@ class Auth:
 
     async def get_safe_user(self, userid: int):
         user = await self.get_user(userid)
-        return UserModel(**user.dict())
+        # return UserModel(**user.dict())
+        return await self.__join_user__(user)
 
     async def get_user_by_username(self, username: str):
         user = await db.fetchone("SELECT * FROM user WHERE username = :username", {"username": username})

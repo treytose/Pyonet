@@ -1,5 +1,5 @@
 from datetime import timedelta
-from fastapi import APIRouter, Depends, Form, HTTPException
+from fastapi import APIRouter, Depends, Form, HTTPException, Security
 from pydantic import ValidationError
 from app import ACCESS_TOKEN_EXPIRE_MINUTES
 from app.dependencies import verify_token, verify_api_key
@@ -31,7 +31,7 @@ async def verify(user = Depends(verify_token)):
     return user
 
 @router.get("/auth/test")
-async def test(user = Depends(verify_token)):
+async def test(user = Security(verify_token, scopes=["admin"])):
     return user
 
 @router.get("/auth/test/api_key")
