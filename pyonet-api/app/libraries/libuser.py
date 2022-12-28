@@ -11,10 +11,10 @@ class User:
 
     async def __join_user__(self, user):
         roles = await db.fetchall('''
-            SELECT * FROM user_role_link url
+            SELECT r.* FROM user_role_link url
                 INNER JOIN role r ON r.roleid = url.roleid
             WHERE url.userid = :userid
-        ''', {"userid": user.userid})
+        ''', {"userid": user.userid})        
         return UserJoinedModel ( **user, roles=roles)
 
     async def generate(self):

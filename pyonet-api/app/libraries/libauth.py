@@ -22,7 +22,7 @@ class Auth:
                     INNER JOIN permission ON rpl.permissionid = permission.permissionid
                 WHERE url.userid = :userid
             ''', {"userid": user.userid})
-        return UserJoinedModel(**user.dict(), roles=[role.name for role in roles], permissions=[permission.name for permission in permissions])
+        return UserJoinedModel(**user.dict(), roles=roles, permissions=[permission.name for permission in permissions])
 
     async def generate(self):
         await db.create_schema("user", UserInDB.schema()) 

@@ -6,6 +6,7 @@ from typing import List
 from app.schemas.role import RoleModel
 
 class UserModel(BaseModel):    
+    userid: int = Query(None)
     username: str = Query(..., max_length=64)
     create_date: Optional[datetime] = Query(None, description='Date and time the user signed up', form_options={"display": False})
 
@@ -15,7 +16,7 @@ class UserInDB(UserModel):
     hashed_password: str = Query(..., max_length=128)
 
 class UserJoinedModel(UserModel):
-    roles: List[str] = Query([], description='List of roles assigned to the user')
+    roles: List[RoleModel] = Query([], description='List of roles assigned to the user')
     permissions: List[str] = Query([], description='List of permissions assigned to the user')
 
 class Token(BaseModel):
