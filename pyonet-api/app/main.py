@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from . import db
 
 # routers 
+from .routers import check
 from .routers import role
 from .routers import user
 from .routers import permission
@@ -29,6 +30,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 @app.on_event("startup")
 async def startup_event():
     await db.connect()
+    await check.oCheck.generate()
     await role.oRole.generate()
     await permission.oPermission.generate()
     await device.oDevice.generate()
@@ -41,6 +43,7 @@ async def shutdown_event():
 
 
 # register routers #
+app.include_router(check.router)
 app.include_router(role.router)
 app.include_router(user.router)
 app.include_router(permission.router)
