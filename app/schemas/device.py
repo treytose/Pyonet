@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from fastapi import Query
 from typing import Optional    
+from app.schemas.poller import PollerModel
 
 
 class DeviceModel(BaseModel):          
@@ -32,4 +33,4 @@ class DeviceUpdateModel(BaseModel):
     pollerid: int = Query(..., title="pollerid", form_options={})
 
 class DeviceJoinedModel(DeviceModel):
-      pass
+    poller: PollerModel = Query(..., title="poller", form_options={}, joined=True)

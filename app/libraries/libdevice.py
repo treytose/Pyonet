@@ -1,11 +1,14 @@
 from http.client import HTTPException
 from app import db
 from app.schemas.device import DeviceModel, DeviceJoinedModel
+from app.schemas.poller import PollerModel
 
 class Device:
     async def __join_device__(self, device):
 
-        return DeviceJoinedModel ( **device)
+        poller = await db.fetchone("SELECT * FROM `poller` WHERE pollerid=:pollerid", {"pollerid": device["pollerid"]})
+
+        return DeviceJoinedModel ( **device, poller=PollerModel(**poller))
 
 
     async def generate(self):
@@ -59,7 +62,7 @@ class Device:
     async def get_device(self, deviceid: int, joined: bool = False):
         device = await db.fetchone("SELECT * FROM `device` WHERE deviceid=:deviceid", {"deviceid": deviceid})
         if joined:
-            device = self.__join_device__(device)
+            device = await self.__join_device__(device)
         return device
 
     async def create_device(self, device: DeviceModel):
