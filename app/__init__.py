@@ -1,6 +1,18 @@
-import os
+import os, asyncio
 from dotenv import load_dotenv
 from app.tools.asyncdb import AsyncDB
+
+
+# check if .env exists
+if not os.path.isfile(".env"):
+    from .initial_setup import run_initial_setup
+    
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(run_initial_setup())
+    
+    try: sys.exit(0)
+    except: pass
+
 
 # load environment variables from .env 
 load_dotenv()
