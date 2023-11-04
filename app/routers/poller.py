@@ -1,5 +1,8 @@
-from fastapi import APIRouter, Depends
-from app.dependencies import verify_api_key
+import requests
+from urllib3.exceptions import NewConnectionError
+from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException
+from app.dependencies import verify_api_key, verify_token
 from app.libraries.libpoller import Poller
 from app.schemas.poller import PollerModel, PollerUpdateModel, PollerCreateModel
 
@@ -13,7 +16,49 @@ oPoller = Poller()
 async def get_poller_devices(poller = Depends(verify_api_key)):
     return await oPoller.get_poller_devices(poller)
 
-# CRUID Poller Requests ( JWT required )
+class PollerQuery(BaseModel):
+    pollerid: int
+    route: str
+    params: dict = {}
+    payload: dict = {}
+    method: str = "GET"
+
+@router.post("/query-poller")
+async def query_poller(query: PollerQuery, user = Depends(verify_token)):
+    poller = await oPoller.get_poller(query.pollerid)
+    
+    if not poller:
+        raise HTTPException(status_code=404, detail="Poller not found")
+    
+    try:
+        route = query.route
+        if route.startswith("/"):
+            route = route[1:]
+            
+        url = f"http://{poller.hostname}:{poller.port}/{route}"
+        headers = {
+            "PYONET-POLLER-API-KEY": f"{poller.api_key}"
+        }
+        
+        if query.method == "GET":
+            r = requests.get(url, headers=headers, params=query.params)
+        elif query.method == "POST":
+            r = requests.post(url, headers=headers, params=query.params, json=query.payload)
+        elif query.method == "PUT":
+            r = requests.put(url, headers=headers, params=query.params, json=query.payload)
+        elif query.method == "DELETE":
+            r = requests.delete(url, headers=headers, params=query.params)
+        else:
+            return {"error": "Invalid method"}
+        
+        return r.json()        
+    except requests.exceptions.ConnectionError as e:
+        raise HTTPException(status_code=500, detail="Unable to connect to poller")
+    except Exception as e2:
+        print(e2)
+        raise HTTPException(status_code=500, detail="Poller error")        
+    
+# CRUD Poller Requests ( JWT required )
 
 @router.get("/poller/schema")
 async def get_poller_schema(joined: bool = False):              
